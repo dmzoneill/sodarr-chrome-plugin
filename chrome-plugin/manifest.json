@@ -1,0 +1,44 @@
+{
+    "name": "Sodarr",
+    "description": "Plugin to open files with xdg-open",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": [
+      "storage",
+      "activeTab",
+      "scripting"
+    ],
+    "host_permissions": [
+      "http://localhost:35000/open_file"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "*://192.168.0.30:*/*"
+        ],
+        "js": ["contentscript.js"],
+        "run_at": "document_end"
+      }  
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "sodarr.png",
+        "32": "sodarr.png",
+        "48": "sodarr.png",
+        "128": "sodarr.png"
+      }
+    },
+    "icons": {
+      "16": "sodarr.png",
+      "32": "sodarr.png",
+      "48": "sodarr.png",
+      "128": "sodarr.png"
+    },
+    "web_accessible_resources": [
+        {
+          "resources": ["vlc.png"],
+          "matches": ["<all_urls>"]
+        }
+    ]
+  }
