@@ -37,7 +37,7 @@
     },
     "web_accessible_resources": [
         {
-          "resources": ["vlc.png"],
+          "resources": ["vlc.png", "folder.png"],
           "matches": ["<all_urls>"]
         }
     ]
