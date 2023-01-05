@@ -1,7 +1,9 @@
 # sodarr-chrome-plugin
-Plugin for chrome that opens videos directly from sonarr and radarr by adding a VLC like icon to the file listing.
+Plugin for chrome that opens videos directly from sonarr and radarr, by adding a VLC like icon to the file listing.
 
-add crontab and update file.. This will make sure the service is running
+add crontab and update service/run.sh.. 
+This will make sure the service is running.
+
 ```
 */5 * * * * /home/.../sodarr-chrome-plugin/service/run.sh
 ```
