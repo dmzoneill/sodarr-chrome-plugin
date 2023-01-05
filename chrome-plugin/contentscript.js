@@ -50,7 +50,7 @@ const remove_elements_by_class = async function(className){
     }
 }
 
-const open_episode = async function(button) {
+const open_episode = async function(button, folder = false) {
     button.click();
     let modal = document.querySelectorAll("div[class*='Modal-modal']");
 
@@ -59,7 +59,13 @@ const open_episode = async function(button) {
     let columns = modal[0].querySelectorAll("td[class*='TableRowCell-cell']");
     document.querySelectorAll("button[class*='ModalContent-closeButton']")[0].click();
 
-    post_data(service_endpoint + "/open", columns[0].innerText).then(data => {
+    let parts = columns[0].innerText.split("/");
+    parts.pop();
+    parts = parts.join("/");
+
+    let dst = folder ? parts : columns[0].innerText;
+
+    post_data(service_endpoint + "/open", dst).then(data => {
         console.log(data);
     });
 }
@@ -73,6 +79,15 @@ const update_series = async function() {
     remove_elements_by_class("vlc_button");
     remove_elements_by_class("folder_button");
 
+    let series_path = document.querySelectorAll("span[class*='SeriesDetails-path']")[0];
+    series_path.addEventListener("click", function() {
+        post_data(service_endpoint + "/open", series_path.innerText).then(data => {
+            console.log(data);
+        });
+    });
+    series_path.setAttribute("style", "cursor: pointer;");
+    series_path.setAttribute("title", "Open folder " + series_path.innerText);
+
     for (let i = 0; i < series_episodes.length; i++) {
         let title = series_episodes[i].parentNode.parentNode.nextSibling.nextSibling.querySelectorAll("span");
         if(file_missing_indicators.includes(title[0].title) == false) {
@@ -84,10 +99,7 @@ const update_series = async function() {
 
             let img_folder = create_folder_link();
             img_folder.addEventListener("click", function() { 
-                let series_path = document.querySelectorAll("span[class*='SeriesDetails-path']");
-                post_data(service_endpoint + "/open", series_path[0].innerText).then(data => {
-                    console.log(data);
-                });    
+                open_episode(series_episodes[i], true);    
             });
             insert_after(img_folder, series_episodes[i]);
         }
