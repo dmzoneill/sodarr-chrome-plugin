@@ -1,10 +1,9 @@
 {
     "name": "Sodarr",
-    "description": "Plugin to open files with xdg-open",
+    "description": "Plugin to open files with xdg-open in sonrarr and radarr",
     "version": "1.0",
     "manifest_version": 3,
     "permissions": [
-      "storage",
       "activeTab",
       "scripting"
     ],
@@ -14,7 +13,7 @@
     "content_scripts": [
       {
         "matches": [
-          "*://192.168.0.30:*/*"
+          "<all_urls>"
         ],
         "js": ["contentscript.js"],
         "run_at": "document_end"
