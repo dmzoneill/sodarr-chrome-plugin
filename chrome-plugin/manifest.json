@@ -1,14 +1,11 @@
 {
     "name": "Sodarr",
     "description": "Plugin to open files with xdg-open in sonrarr and radarr",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "manifest_version": 3,
-    "permissions": [
-      "activeTab",
-      "scripting"
-    ],
+    "permissions": [],
     "host_permissions": [
-      "http://localhost:35000/open_file"
+      "*://*/"
     ],
     "content_scripts": [
       {
@@ -36,7 +33,7 @@
     },
     "web_accessible_resources": [
         {
-          "resources": ["vlc.png", "folder.png"],
+          "resources": ["vlc.png", "folder.png", "loading.gif", "error.png"],
           "matches": ["<all_urls>"]
         }
     ]
