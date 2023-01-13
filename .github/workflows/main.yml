@@ -12,13 +12,13 @@ jobs:
 
       - name: Build
         run: |-
-          zip -r chrome-extension-${{ github.event.pull_request.head.sha }}.zip dist
+          zip -r chrome-extension-${{ github.sha }}.zip chrome-plugin
 
       - name: Archive chrome-extension artifact
         uses: actions/upload-artifact@v2
         with:
           name: chrome-extension-${{ github.sha }}
-          path: chrome-extension-${{ github.event.pull_request.head.sha }}.zip
+          path: chrome-extension-${{ github.sha }}.zip
           
   upload-extension:
     name: Upload extension
