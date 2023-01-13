@@ -18,7 +18,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: chrome-extension-${{ github.sha }}
-          path: chrome-plugin/chrome-extension-${{ github.sha }}.zip
+          path: chrome-extension-${{ github.sha }}.zip
           
   upload-extension:
     name: Upload extension
