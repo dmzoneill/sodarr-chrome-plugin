@@ -28,6 +28,7 @@ jobs:
       github.event_name == 'push' || 
       github.event.pull_request.merged == true
     name: Build Chrome extension artifact
+    needs: run-lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
