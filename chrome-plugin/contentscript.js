@@ -1,234 +1,290 @@
-let host = window.location.host.indexOf(":") ? window.location.host.split(":")[0] : window.location.host;
-let service_endpoint = "http://" + host + ":35000";
-let updating_dom_timer = null;
-let updating_dom_series_link_count = 0;
-let vlc_logo = chrome.runtime.getURL("vlc.png");
-let folder_logo = chrome.runtime.getURL("folder.png");
-let loading_logo = chrome.runtime.getURL("loading.gif");
-let error_logo = chrome.runtime.getURL("error.png");
-let file_missing_indicators = ['Episode has not aired', 'Episode missing from disk'];
-let linux = navigator.platform.toLowerCase().indexOf('linux') > -1 ? true : false;
+class Sodarr {
 
-let modified = false;
+    static instance = null;
+    static radarr = null;
+    static sonarr = null;
 
-const debug = async function (msg) {
-    console.log("Sodarr: " + msg);
-};
+    static host = window.location.host.indexOf(":") ? window.location.host.split(":")[0] : window.location.host;
+    static service_endpoint = "http://" + Sodarr.host + ":35000";
+    static updating_dom_timer = null;
+    static updating_dom_series_link_count = 0;
+    static vlc_logo = chrome.runtime.getURL("vlc.png");
+    static folder_logo = chrome.runtime.getURL("folder.png");
+    static loading_logo = chrome.runtime.getURL("loading.gif");
+    static error_logo = chrome.runtime.getURL("error.png");
+    static file_missing_indicators = ['Episode has not aired', 'Episode missing from disk'];
+    static linux = navigator.platform.toLowerCase().indexOf('linux') > -1 ? true : false;
+    static class_prefix = "sodarr-";
+    static id_prefix = "sodarr-";
+    static modified = false;
 
-const post_data = async function (url, data) {
-    retry = 3;
-    last_error = "";
+    constructor() {
+        Sodarr.instance = this;
+    }
 
-    while (retry > 0) {
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                redirect: 'follow',
-                body: "video=" + data
-            });
-            return [true, response.text()]
-        } catch (error) {
-            // TypeError: Failed to fetch
-            console.log('There was an error', error);
-            retry = retry - 1;
-            last_error = error;
+    async debug(msg) {
+        console.log("Sodarr: " + msg);
+    };
+
+    async post_data(url, data) {
+        let retry = 3;
+        let last_error = "";
+
+        while (retry > 0) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    redirect: 'follow',
+                    body: "video=" + data
+                });
+                return [true, response.text()]
+            } catch (error) {
+                // TypeError: Failed to fetch
+                console.log('There was an error', error);
+                retry = retry - 1;
+                last_error = error;
+            }
+
+            await new Promise(r => setTimeout(r, 1000));
         }
 
-        await new Promise(r => setTimeout(r, 1000));
+        return [false, last_error]
     }
 
-    return [false, last_error]
-}
-
-const create_image = function (id = null, size = "12px", title = "") {
-    let img = document.createElement('img');
-    img.setAttribute("width", size);
-    img.setAttribute("height", size);
-    img.setAttribute("style", "margin-left:" + size + "; cursor: pointer;");
-    img.setAttribute("class", "vlc_button");
-    img.setAttribute("title", title)
-    if (id != null) img.setAttribute("id", id);
-    return img;
-}
-
-const create_vlc_image = function (id = null, size = "12px", title = "") {
-    let img = create_image(id, size, title);
-    img.setAttribute("class", "vlc_button");
-    img.setAttribute("src", vlc_logo);
-    if (id != null) img.setAttribute("id", id);
-    return img;
-}
-
-const create_loading_image = function (id = null, size = "12px", title = "") {
-    let img = create_image(id, size, title);
-    img.setAttribute("class", "vlc_button");
-    img.setAttribute("src", loading_logo);
-    if (id != null) img.setAttribute("id", id);
-    return img;
-}
-
-const create_error_image = function (id = null, size = "12px", title = "") {
-    let img = create_image(id, size, title);
-    img.setAttribute("class", "vlc_button");
-    img.setAttribute("src", error_logo);
-    if (id != null) img.setAttribute("id", id);
-    return img;
-}
-
-const create_folder_link = function (id = null, size = "14px", title = "") {
-    let img = create_image(id, "12px", size, title);
-    img.setAttribute("class", "folder_button");
-    img.setAttribute("src", folder_logo);
-    if (id != null) img.setAttribute("id", id);
-    return img;
-}
-
-const remove_elements_by_class = async function (className) {
-    const elements = document.getElementsByClassName(className);
-    while (elements.length > 0) {
-        elements[0].parentNode.removeChild(elements[0]);
+    create_image(id, src, size, title, css_class) {
+        let img = document.createElement('img');
+        img.setAttribute("width", size);
+        img.setAttribute("height", size);
+        img.setAttribute("style", "margin-left:" + size + "; cursor: pointer;");
+        img.setAttribute("class", Sodarr.class_prefix + css_class);
+        img.setAttribute("title", title)
+        img.setAttribute("src", src);
+        if (id != null) img.setAttribute("id", Sodarr.class_prefix + id);
+        return img;
     }
-}
 
-const remove_element_by_id = async function (id) {
-    try {
-        var element = document.getElementById(id);
-        element.parentNode.removeChild(element);
-    } catch (err) {
-        debug(err);
-    }
-}
-
-const open_episode = async function (button, folder = false, nextSibling) {
-    button.click();
-    let modal = document.querySelectorAll("div[class*='Modal-modal']");
-
-    if (modal.length == 0) return;
-
-    remove_element_by_id("sodarr-error");
-
-    let columns = modal[0].querySelectorAll("td[class*='TableRowCell-cell']");
-    document.querySelectorAll("button[class*='ModalContent-closeButton']")[0].click();
-
-    let parts = columns[0].innerText.split("/");
-    parts.pop();
-    parts = parts.join("/");
-
-    let dst = folder ? parts : columns[0].innerText;
-
-    let res = await post_data(service_endpoint + "/open", dst);
-
-    remove_element_by_id("sodarr-loading");    
-
-    if (res[0]) {
-        debug("Opening video");
-    } else {
+    create_debug_link(size = "12px") {
         var debugLink = document.createElement('a');
         debugLink.href = "https://github.com/dmzoneill/sodarr-chrome-plugin/blob/main/DEBUG.md";
         debugLink.target = "_blank";
-        debugLink.appendChild(create_error_image("sodarr-error", "12px", "Failed connecting to service, click here to debug"));
-        nextSibling.parentNode.insertBefore(debugLink, nextSibling.nextSibling);
+        debugLink.appendChild(this.create_image("error", Sodarr.error_logo, size, "Failed connecting to service, click here to debug", "error"));
+        return debugLink;
+    }
+
+    remove_elements_by_class(className) {
+        try {
+            const elements = document.getElementsByClassName(Sodarr.class_prefix + className);
+            while (elements.length > 0) {
+                elements[0].parentNode.removeChild(elements[0]);
+            }
+        } catch (error) {
+            this.debug(error.stack);
+        }
+    }
+
+    remove_element_by_id(id) {
+        try {
+            var element = document.getElementById(Sodarr.id_prefix + id);
+            if (element == undefined) {
+                return;
+            }
+            element.parentNode.removeChild(element);
+        } catch (error) {
+            this.debug(error.stack);
+        }
+    }
+
+    async update_page() {
+        Sodarr.sonarr.update();
+        Sodarr.radarr.update();
+    }
+
+    async observe_page_changes() {
+        Sodarr.sonarr = new Sonarr();
+        Sonarr.instance = Sodarr.sonarr;
+        Sodarr.radarr = new Radarr();
+        Radarr.instance = Sodarr.radarr;
+
+        const mutation_callback = () => {
+            if (Sodarr.instance.modified) {
+                return;
+            }
+            Sodarr.instance.debug("Onload attach dom mutator observer");
+            clearTimeout(Sodarr.instance.updating_dom_timer);
+            Sodarr.instance.updating_dom_timer = setTimeout(Sodarr.instance.update_page, 150);
+        }
+
+        let mutationObserver = new MutationObserver(mutation_callback);
+
+        let config = {
+            attributes: true,
+            childList: true,
+            subtree: true,
+        }
+
+        mutationObserver.observe(document.documentElement, config);
     }
 }
 
-const update_series = async function () {
-    let series_episodes = document.querySelectorAll("button[class*='EpisodeTitleLink-link']");
 
-    if (series_episodes.length == updating_dom_series_link_count) return;
+class Sonarr extends Sodarr {
+    async open_episode(button, folder = false, nextSibling) {
+        button.click();
+        let modal = document.querySelectorAll("div[class*='Modal-modal']");
 
-    updating_dom_series_link_count = series_episodes.length;
-    remove_elements_by_class("vlc_button");
-    remove_elements_by_class("folder_button");
+        if (modal.length == 0) return;
 
-    let series_path = document.querySelectorAll("span[class*='SeriesDetails-path']")[0];
-    series_path.addEventListener("click", function () {
-        post_data(service_endpoint + "/open", series_path.innerText).then(data => {
-            debug("clicked");
+        this.remove_element_by_id("error");
+
+        let columns = modal[0].querySelectorAll("td[class*='TableRowCell-cell']");
+        document.querySelectorAll("button[class*='ModalContent-closeButton']")[0].click();
+
+        let parts = columns[0].innerText.split("/");
+        parts.pop();
+        parts = parts.join("/");
+
+        let dst = folder ? parts : columns[0].innerText;
+
+        let res = await this.post_data(Sodarr.service_endpoint + "/open", dst);
+
+        this.remove_element_by_id("loading");
+
+        if (res[0]) {
+            this.debug("Opening video");
+        } else {
+            nextSibling.parentNode.insertBefore(this.create_debug_link(), nextSibling.nextSibling);
+        }
+    }
+
+    async episode_clicked(event) {
+        let loadimg_img = Sodarr.instance.create_image("loading", Sodarr.loading_logo, "12px", "loading ...", "loading");
+        Sodarr.instance.modified = true;
+        event.currentTarget.img_play.parentNode.insertBefore(loadimg_img, event.currentTarget.img_play.nextSibling);
+        Sonarr.instance.open_episode(event.currentTarget.episode, false, event.currentTarget.img_play);
+        Sodarr.instance.modified = false;
+    }
+
+    async folder_clicked(event) {
+        Sonarr.instance.open_episode(event.currentTarget.episode, true);
+    }
+
+    async update() {
+        let series_episodes = document.querySelectorAll("button[class*='EpisodeTitleLink-link']");
+
+        if (series_episodes.length == Sodarr.updating_dom_series_link_count) return;
+
+        Sodarr.updating_dom_series_link_count = series_episodes.length;
+        this.remove_elements_by_class("vlc");
+        this.remove_elements_by_class("folder");
+
+        let series_path = document.querySelectorAll("span[class*='SeriesDetails-path']")[0];
+        series_path.addEventListener("click", async function () {
+            let res = await Sodarr.instance.post_data(service_endpoint + "/open", series_path.innerText);
+            Sodarr.instance.debug("clicked");
         });
-    });
-    series_path.setAttribute("style", "cursor: pointer;");
-    series_path.setAttribute("title", "Open folder " + series_path.innerText);
+        series_path.setAttribute("style", "cursor: pointer;");
+        series_path.setAttribute("title", "Open folder " + series_path.innerText);
 
-    debug("Found series in the active tab");
+        this.debug("Found series in the active tab");
 
-    for (let i = 0; i < series_episodes.length; i++) {
-        let title = series_episodes[i].parentNode.parentNode.nextSibling.nextSibling.querySelectorAll("span");
-        if (file_missing_indicators.includes(title[0].title) == false) {
-            let img_play = create_vlc_image(null, "12px", linux ? "Click to play" : navigator.platform + " unsupported");
-            img_play.addEventListener("click", function () {
-                let loadimg_img = create_loading_image("sodarr-loading", "12px");
-                modified = true;
-                img_play.parentNode.insertBefore(loadimg_img, img_play.nextSibling);
-                open_episode(series_episodes[i], false, img_play);
-            });
+        for (let i = 0; i < series_episodes.length; i++) {
+            let title = series_episodes[i].parentNode.parentNode.nextSibling.nextSibling.querySelectorAll("span");
+
+            if (Sodarr.file_missing_indicators.includes(title[0].title) != false) {
+                continue;
+            }
+
+            let img_play = this.create_image("vlc", Sodarr.vlc_logo, "12px", Sodarr.linux ? "Click to play" : navigator.platform + " unsupported", "vlc");
+            img_play.img_play = img_play;
+            img_play.episode = series_episodes[i];
+            img_play.addEventListener("click", this.episode_clicked);
             series_episodes[i].parentNode.insertBefore(img_play, series_episodes[i].nextSibling);
 
-            let img_folder = create_folder_link();
-            img_folder.addEventListener("click", function () {
-                open_episode(series_episodes[i], true);
-            });
+            let img_folder = this.create_image("folder", Sodarr.folder_logo, "12px", "Open folder", "folder");
+            img_folder.episode = series_episodes[i];
+            img_folder.addEventListener("click", this.folder_clicked);
             series_episodes[i].parentNode.insertBefore(img_folder, series_episodes[i].nextSibling);
 
-            debug("Added play icon to episode");
+            this.debug("Added play icon to episode");
         }
     }
 }
 
-const update_movie = async function () {
-    if (document.getElementById("film_link") != null) return;
+class Radarr extends Sodarr {
+    async movie_clicked(event) {
+        try {
+            Sodarr.modified = true;
+            Sodarr.instance.remove_element_by_id("error");
+            Sodarr.instance.remove_element_by_id("loading");
 
-    let movie_details = document.querySelectorAll("ul[class*='MovieDetails-tabList']");
-    if (movie_details.length == 0) return;
+            let target = document.querySelectorAll("span[class*='MovieDetails-links']")[0];
 
-    debug("Found films in the active tab");
+            target.appendChild(Sodarr.instance.create_image("loading", Sodarr.loading_logo, "18px", "loading ...", "loading"));
+            let res = await Sodarr.instance.post_data(Sodarr.service_endpoint + "/open", event.currentTarget.folder_path + "/" + event.currentTarget.file_path);
+            Sodarr.instance.remove_element_by_id("loading");
 
-    let tabs = movie_details[0].querySelectorAll("li");
-    let selected = movie_details[0].querySelectorAll('[aria-selected="true"]');
-    tabs[2].click();
-    let movie_path = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']");
-
-    if (movie_path.length == 0) return;
-
-    let path = document.querySelectorAll("span[class*='MovieDetails-path']");
-    let target = document.querySelectorAll("span[class*='MovieDetails-links']");
-    target[0].innerHTML += create_vlc_image("film_link", "16px", linux ? "Click to play" : navigator.platform + " unsupported").outerHTML;
-    document.getElementById("film_link").addEventListener("click", function () {
-        post_data(service_endpoint + "/open", path[0].innerText + "/" + movie_path[0].innerText).then(data => {
-            debug("clicked");
-        });
-    });
-
-    debug("attached to the onclick event");
-
-    selected[0].click();
-}
-
-const update_page = async function () {
-    debug("Looking for series and films in the current tab");
-    update_series();
-    update_movie();
-}
-
-const observe_page_changes = async function () {
-    let mutationObserver = new MutationObserver(function () {
-        if (modified) {
-            modified = false;
-            return;
+            if (res[0]) {
+                Sodarr.instance.debug("Opening video");
+            } else {
+                target.appendChild(Sodarr.instance.create_debug_link("18px"));
+            }
+            Sodarr.modified = false;
+        } catch (error) {
+            Sodarr.instance.debug(error.stack);
+            Sodarr.modified = false;
         }
-        debug("Onload attach dom mutator observer");
-        clearTimeout(updating_dom_timer);
-        updating_dom_timer = setTimeout(update_page, 150);
-    });
+    }
 
-    mutationObserver.observe(document.documentElement, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-    });
+    async update() {
+        try {
+            if (document.getElementById(Sodarr.class_prefix + 'film-link') != undefined) {
+                Sodarr.modified = false;
+                return;
+            }
+
+            if (document.querySelectorAll("ul[class*='MovieDetails-tabList']")[0] == undefined) {
+                Sodarr.modified = false;
+                return;
+            }
+
+            Sodarr.modified = true;
+            this.remove_element_by_id("error");
+
+            this.debug("Found films in the active tab");
+
+            let movie_details = document.querySelectorAll("ul[class*='MovieDetails-tabList']")[0];
+            let tab = movie_details.querySelectorAll("li")[2];
+
+            tab.click();
+
+            let movie_path = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0].innerText;
+            let selected = movie_details.querySelectorAll('[aria-selected="true"]')[0];
+            let path = document.querySelectorAll("span[class*='MovieDetails-path']")[0].innerText;
+            let target = document.querySelectorAll("span[class*='MovieDetails-links']")[0];
+
+            if (movie_path.length == 0) {
+                return;
+            }
+
+            target.appendChild(this.create_image("film-link", Sodarr.vlc_logo, "18px", Sodarr.linux ? "Click to play" : navigator.platform + " unsupported", "film-link"));
+            let film = document.getElementById(Sodarr.id_prefix + "film-link");
+            film.folder_path = path;
+            film.file_path = movie_path;
+            film.addEventListener("click", this.movie_clicked);
+
+            this.debug("attached to the onclick event");
+
+            selected.click();
+            Sodarr.modified = false;
+        } catch (error) {
+            this.debug(error.stack);
+            Sodarr.modified = false;
+        }
+    }
 }
 
-window.onload = observe_page_changes;
+window.onload = (new Sodarr()).observe_page_changes;
