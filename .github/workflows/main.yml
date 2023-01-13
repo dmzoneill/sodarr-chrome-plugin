@@ -12,7 +12,7 @@ jobs:
 
       - name: Build
         run: |-
-          cd chrome-plugin && zip -r chrome-extension-${{ github.sha }}.zip .
+          cd chrome-plugin && zip -r ../chrome-extension-${{ github.sha }}.zip .
 
       - name: Archive chrome-extension artifact
         uses: actions/upload-artifact@v2
@@ -39,4 +39,4 @@ jobs:
 
       - name: Upload step
         run: |-
-          chrome-webstore-upload upload --source chrome-plugin/chrome-extension-${{ github.sha }}.zip --extension-id ${{ env.EXTENSION_ID }} --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
+          chrome-webstore-upload upload --source chrome-extension-${{ github.sha }}.zip --extension-id ${{ env.EXTENSION_ID }} --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
