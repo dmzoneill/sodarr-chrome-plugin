@@ -1,4 +1,4 @@
-// https://github.com/dmzoneill/sodarr-chrome-plugin
+
 class Sodarr {
   static instance = null
   static radarr = null
