@@ -1,15 +1,16 @@
 # Sodarr
 # https://github.com/dmzoneill/sodarr-chrome-plugin/
 
-from fastapi import FastAPI, Form
-from urllib.parse import unquote
-import subprocess
-import os
-from pprint import pprint
+import json
 import os
 import pwd
-import json
+import subprocess
 import sys
+from pprint import pprint
+from urllib.parse import unquote
+
+from fastapi import FastAPI, Form
+
 
 try:
     import systemd.daemon
