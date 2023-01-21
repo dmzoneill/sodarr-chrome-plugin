@@ -24,7 +24,6 @@ jobs:
           VALIDATE_PYTHON_MYPY: false
           VALIDATE_PYTHON_FLAKE8: false
           DEFAULT_BRANCH: "main"
-          DEFAULT_BRANCH: "main"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-chrome-extension:
