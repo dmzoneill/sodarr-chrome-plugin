@@ -149,7 +149,7 @@ class Sonarr extends Sodarr {
 
         let dst = folder ? parts : columns[0].innerText;
 
-        let res = await this.post_data(Sodarr.service_endpoint + "/open", dst);
+        let res = await this.post_data(Sodarr.service_endpoint + "/open", encodeURIComponent(dst));
 
         this.remove_element_by_id("loading");
 
@@ -183,7 +183,7 @@ class Sonarr extends Sodarr {
 
         let series_path = document.querySelectorAll("span[class*='SeriesDetails-path']")[0];
         series_path.addEventListener("click", async function () {
-            let res = await Sodarr.instance.post_data(service_endpoint + "/open", series_path.innerText);
+            let res = await Sodarr.instance.post_data(service_endpoint + "/open", encodeURIComponent(series_path.innerText));
             Sodarr.instance.debug("clicked");
         });
         series_path.setAttribute("style", "cursor: pointer;");
@@ -224,7 +224,7 @@ class Radarr extends Sodarr {
             let target = document.querySelectorAll("span[class*='MovieDetails-links']")[0];
 
             target.appendChild(Sodarr.instance.create_image("loading", Sodarr.loading_logo, "18px", "loading ...", "loading"));
-            let res = await Sodarr.instance.post_data(Sodarr.service_endpoint + "/open", event.currentTarget.folder_path + "/" + event.currentTarget.file_path);
+            let res = await Sodarr.instance.post_data(Sodarr.service_endpoint + "/open", encodeURIComponent(event.currentTarget.folder_path + "/" + event.currentTarget.file_path));
             Sodarr.instance.remove_element_by_id("loading");
 
             if (res[0]) {

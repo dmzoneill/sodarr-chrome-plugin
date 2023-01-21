@@ -2,6 +2,7 @@
 # https://github.com/dmzoneill/sodarr-chrome-plugin/
 
 from fastapi import FastAPI, Form
+from urllib.parse import unquote
 import subprocess
 import os
 from pprint import pprint
@@ -47,17 +48,23 @@ except:
 def check_valid_video(infile):
     try:
         if os.path.isdir(infile):
+            pprint("dir")
             return [True, None, None]
         elif os.path.isfile(infile):
+            pprint("file")
             lower = infile.lower()
             extensions = ['.mp3', '.flac', '.avi',
                           '.mkv', '.avi', '.mp4', '.mpg']
             for ext in extensions:
                 if lower.endswith(ext):
+                    pprint("is video")
                     return [True, lower, ext]
+                
+            pprint("not video")
             return [False, lower, None]
     except Exception as e:
-        return [False, False, None, str(e)]
+        pprint(str(e))
+        return [False, False, str(e)]
 
 
 app = FastAPI()
@@ -79,7 +86,9 @@ def do_nothing():
 
 @app.post("/open")
 async def play_video(video: str = Form(...)):
-    path_check = check_valid_video(video)
+    pprint(video)
+    path_check = check_valid_video(unquote(video))
+    pprint(path_check)
     if path_check[0]:
         cmd = ""
         if sys.platform == "win32":
