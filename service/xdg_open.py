@@ -11,7 +11,6 @@ from urllib.parse import unquote
 
 from fastapi import FastAPI, Form
 
-
 try:
     import systemd.daemon
 except:
