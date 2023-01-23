@@ -240,7 +240,7 @@ class Radarr extends Sodarr {
 
   async update () {
     try {
-      if (document.getElementById(Sodarr.class_prefix + 'film-link') !== undefined) {
+      if (document.getElementById(Sodarr.class_prefix + 'film-link') !== null) {
         Sodarr.modified = false
         return
       }
@@ -249,6 +249,8 @@ class Radarr extends Sodarr {
         Sodarr.modified = false
         return
       }
+
+      this.debug('4')
 
       Sodarr.modified = true
       this.remove_element_by_id('error')
