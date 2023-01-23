@@ -1,4 +1,4 @@
-
+// dmz.oneill@gmail.com
 class Sodarr {
   static instance = null
   static radarr = null
