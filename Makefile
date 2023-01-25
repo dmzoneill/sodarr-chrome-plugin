@@ -18,4 +18,5 @@ version: bump
 	git commit -a -m "Bump to $(next)"
 
 push: version
+	git pull --rebase
 	git push -u origin main:main -f
