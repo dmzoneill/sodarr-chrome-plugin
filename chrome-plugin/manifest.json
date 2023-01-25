@@ -1,7 +1,7 @@
 {
     "name": "Sodarr",
     "description": "Plugin to open files with xdg-open in sonrarr and radarr",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "manifest_version": 3,
     "permissions": [],
     "host_permissions": [
