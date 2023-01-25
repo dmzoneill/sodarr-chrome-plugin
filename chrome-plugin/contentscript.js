@@ -17,13 +17,16 @@ class Sodarr {
   static class_prefix = 'sodarr-'
   static id_prefix = 'sodarr-'
   static modified = false
+  static debug_enabled = false
 
   constructor () {
     Sodarr.instance = this
   }
 
   async debug (msg) {
-    console.log('Sodarr: ' + msg)
+    if (Sodarr.debug_enabled) {
+      console.log('Sodarr: ' + msg)
+    }
   };
 
   async post_data (url, data) {
@@ -43,8 +46,7 @@ class Sodarr {
         })
         return [true, response.text()]
       } catch (error) {
-        // TypeError: Failed to fetch
-        console.log('There was an error', error)
+        this.debug(error.stack)
         retry = retry - 1
         lastError = error
       }
@@ -227,13 +229,13 @@ class Radarr extends Sodarr {
       Sodarr.instance.remove_element_by_id('loading')
 
       if (res[0]) {
-        Sodarr.instance.debug('Opening video')
+        this.debug('Opening video')
       } else {
         target.appendChild(Sodarr.instance.create_debug_link('18px'))
       }
       Sodarr.modified = false
     } catch (error) {
-      Sodarr.instance.debug(error.stack)
+      this.debug(error.stack)
       Sodarr.modified = false
     }
   }
@@ -249,8 +251,6 @@ class Radarr extends Sodarr {
         Sodarr.modified = false
         return
       }
-
-      this.debug('4')
 
       Sodarr.modified = true
       this.remove_element_by_id('error')
@@ -272,6 +272,7 @@ class Radarr extends Sodarr {
       }
 
       target.appendChild(this.create_image('film-link', Sodarr.vlc_logo, '18px', Sodarr.linux ? 'Click to play' : navigator.platform + ' unsupported', 'film-link'))
+
       const film = document.getElementById(Sodarr.id_prefix + 'film-link')
       film.folder_path = path
       film.file_path = moviePath
