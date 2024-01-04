@@ -18,7 +18,7 @@ class Sodarr {
   static id_prefix = 'sodarr-'
   static modified = false
   static debug_enabled = false
-  static port = null
+  // static port = null
 
   constructor () {
     Sodarr.instance = this
@@ -153,12 +153,11 @@ class Sonarr extends Sodarr {
 
     const res = await this.post_data(Sodarr.serviceEndpoint + '/open', encodeURIComponent(dst))
 
-    chrome.runtime.sendMessage(
-      "flnaknbcpejonkbcjnkjcmackdakbpbd", 
-      {
-        file: encodeURIComponent(dst)
-      }, (response)=>console.log("Got response: ", response))
-      
+    // chrome.runtime.sendMessage(
+    //   "flnaknbcpejonkbcjnkjcmackdakbpbd",
+    //   {
+    //     file: encodeURIComponent(dst)
+    //   }, (response)=>console.log("Got response: ", response))
 
     this.remove_element_by_id('loading')
 
@@ -265,7 +264,7 @@ class Radarr extends Sodarr {
 
       Sodarr.debug('Found films in the active tab')
 
-      const moviePath = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0].innerText      
+      const moviePath = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0].innerText
       const path = document.querySelectorAll("span[class*='MovieDetails-path']")[0].innerText
       const target = document.querySelectorAll("span[class*='MovieDetails-links']")[0]
 
@@ -282,7 +281,6 @@ class Radarr extends Sodarr {
 
       Sodarr.debug('attached to the onclick event')
 
-      selected.click()
       Sodarr.modified = false
     } catch (error) {
       Sodarr.debug(error.stack)
