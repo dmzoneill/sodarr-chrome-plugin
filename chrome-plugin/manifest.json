@@ -3,7 +3,9 @@
     "description": "Plugin to open files with xdg-open in sonrarr and radarr",
     "version": "1.0.9",
     "manifest_version": 3,
-    "permissions": [],
+    "permissions": [
+      "nativeMessaging"
+    ],
     "host_permissions": [
       "*://*/"
     ],
@@ -16,6 +18,10 @@
         "run_at": "document_end"
       }  
     ],
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    },
     "action": {
       "default_popup": "popup.html",
       "default_icon": {

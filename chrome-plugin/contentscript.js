@@ -18,16 +18,17 @@ class Sodarr {
   static id_prefix = 'sodarr-'
   static modified = false
   static debug_enabled = false
+  static port = null
 
   constructor () {
     Sodarr.instance = this
   }
 
-  async debug (msg) {
+  static async debug (msg) {
     if (Sodarr.debug_enabled) {
       console.log('Sodarr: ' + msg)
     }
-  };
+  }
 
   async post_data (url, data) {
     let retry = 3
@@ -46,7 +47,7 @@ class Sodarr {
         })
         return [true, response.text()]
       } catch (error) {
-        this.debug(error.stack)
+        Sodarr.debug(error.stack)
         retry = retry - 1
         lastError = error
       }
@@ -84,7 +85,7 @@ class Sodarr {
         elements[0].parentNode.removeChild(elements[0])
       }
     } catch (error) {
-      this.debug(error.stack)
+      Sodarr.debug(error.stack)
     }
   }
 
@@ -96,7 +97,7 @@ class Sodarr {
       }
       element.parentNode.removeChild(element)
     } catch (error) {
-      this.debug(error.stack)
+      Sodarr.debug(error.stack)
     }
   }
 
@@ -115,7 +116,7 @@ class Sodarr {
       if (Sodarr.instance.modified) {
         return
       }
-      Sodarr.instance.debug('Onload attach dom mutator observer')
+      Sodarr.debug('Onload attach dom mutator observer')
       clearTimeout(Sodarr.instance.updating_dom_timer)
       Sodarr.instance.updating_dom_timer = setTimeout(Sodarr.instance.update_page, 150)
     }
@@ -152,10 +153,17 @@ class Sonarr extends Sodarr {
 
     const res = await this.post_data(Sodarr.serviceEndpoint + '/open', encodeURIComponent(dst))
 
+    chrome.runtime.sendMessage(
+      "flnaknbcpejonkbcjnkjcmackdakbpbd", 
+      {
+        file: encodeURIComponent(dst)
+      }, (response)=>console.log("Got response: ", response))
+      
+
     this.remove_element_by_id('loading')
 
     if (res[0]) {
-      this.debug('Opening video')
+      Sodarr.debug('Opening video')
     } else {
       nextSibling.parentNode.insertBefore(this.create_debug_link(), nextSibling.nextSibling)
     }
@@ -185,12 +193,12 @@ class Sonarr extends Sodarr {
     const seriesPath = document.querySelectorAll("span[class*='SeriesDetails-path']")[0]
     seriesPath.addEventListener('click', async function () {
       await Sodarr.instance.post_data(Sodarr.serviceEndpoint + '/open', encodeURIComponent(seriesPath.innerText))
-      Sodarr.instance.debug('clicked')
+      Sodarr.debug('clicked')
     })
     seriesPath.setAttribute('style', 'cursor: pointer;')
     seriesPath.setAttribute('title', 'Open folder ' + seriesPath.innerText)
 
-    this.debug('Found series in the active tab')
+    Sodarr.debug('Found series in the active tab')
 
     for (let i = 0; i < seriesEpisodes.length; i++) {
       const title = seriesEpisodes[i].parentNode.parentNode.nextSibling.nextSibling.querySelectorAll('span')
@@ -210,7 +218,7 @@ class Sonarr extends Sodarr {
       imgFolder.addEventListener('click', this.folder_clicked)
       seriesEpisodes[i].parentNode.insertBefore(imgFolder, seriesEpisodes[i].nextSibling)
 
-      this.debug('Added play icon to episode')
+      Sodarr.debug('Added play icon to episode')
     }
   }
 }
@@ -229,13 +237,13 @@ class Radarr extends Sodarr {
       Sodarr.instance.remove_element_by_id('loading')
 
       if (res[0]) {
-        this.debug('Opening video')
+        Sodarr.debug('Opening video')
       } else {
         target.appendChild(Sodarr.instance.create_debug_link('18px'))
       }
       Sodarr.modified = false
     } catch (error) {
-      this.debug(error.stack)
+      Sodarr.debug(error.stack)
       Sodarr.modified = false
     }
   }
@@ -247,7 +255,7 @@ class Radarr extends Sodarr {
         return
       }
 
-      if (document.querySelectorAll("ul[class*='MovieDetails-tabList']")[0] === undefined) {
+      if (document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0] === undefined) {
         Sodarr.modified = false
         return
       }
@@ -255,15 +263,9 @@ class Radarr extends Sodarr {
       Sodarr.modified = true
       this.remove_element_by_id('error')
 
-      this.debug('Found films in the active tab')
+      Sodarr.debug('Found films in the active tab')
 
-      const movieDetails = document.querySelectorAll("ul[class*='MovieDetails-tabList']")[0]
-      const tab = movieDetails.querySelectorAll('li')[2]
-
-      tab.click()
-
-      const moviePath = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0].innerText
-      const selected = movieDetails.querySelectorAll('[aria-selected="true"]')[0]
+      const moviePath = document.querySelectorAll("td[class*='MovieFileEditorRow-relativePath']")[0].innerText      
       const path = document.querySelectorAll("span[class*='MovieDetails-path']")[0].innerText
       const target = document.querySelectorAll("span[class*='MovieDetails-links']")[0]
 
@@ -278,12 +280,12 @@ class Radarr extends Sodarr {
       film.file_path = moviePath
       film.addEventListener('click', this.movie_clicked)
 
-      this.debug('attached to the onclick event')
+      Sodarr.debug('attached to the onclick event')
 
       selected.click()
       Sodarr.modified = false
     } catch (error) {
-      this.debug(error.stack)
+      Sodarr.debug(error.stack)
       Sodarr.modified = false
     }
   }
