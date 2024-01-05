@@ -20,7 +20,7 @@ Add crontab and update service/run.sh.  This will make sure the service is runni
 */5 * * * * /home/.../sodarr-chrome-plugin/service/run.sh
 ```
 
-### 2. Systemd
+### 2. Systemd (more reliable)
 
 Create service file
 ```
