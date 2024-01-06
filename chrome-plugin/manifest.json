@@ -3,9 +3,7 @@
     "description": "Plugin to open files with xdg-open in sonrarr and radarr",
     "version": "1.0.10",
     "manifest_version": 3,
-    "permissions": [
-      "nativeMessaging"
-    ],
+    "permissions": [],
     "host_permissions": [
       "*://*/"
     ],
