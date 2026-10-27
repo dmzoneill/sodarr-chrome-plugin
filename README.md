@@ -10,7 +10,7 @@ Plugin for chrome that opens videos directly from Sonarr and Radarr, by adding a
 
 install into local user python includes
 
-```
+```text
 pip3 install fastapi uvicorn
 ```
 
@@ -23,7 +23,7 @@ pip3 install fastapi uvicorn
 
 Add crontab and update service/run.sh. This will make sure the service is running.
 
-```
+```text
 */5 * * * * /home/.../sodarr-chrome-plugin/service/run.sh
 ```
 
@@ -31,13 +31,13 @@ Add crontab and update service/run.sh. This will make sure the service is runnin
 
 Create service file
 
-```
+```text
 vim ~/.config/systemd/user/sodarr.service
 ```
 
 Content sodarr.service
 
-```
+```text
 [Unit]
 Description=Sodarr client service
 After=network.target
@@ -53,7 +53,7 @@ WantedBy=default.target
 
 Enable the service
 
-```
+```text
 systemctl --user daemon-reload
 systemctl --user enable sodarr
 systemctl --user restart sodarr
