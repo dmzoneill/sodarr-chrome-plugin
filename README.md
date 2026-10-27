@@ -1,9 +1,15 @@
 # sodarr-chrome-plugin
+
+<p align="center">
+  <img src=".github/logo.png" alt="sodarr-chrome-plugin logo" width="128" />
+</p>
+
 Plugin for chrome that opens videos directly from Sonarr and Radarr, by adding a VLC like icon to the file listing.
 
 ## install python requirements
 
 install into local user python includes
+
 ```
 pip3 install fastapi uvicorn
 ```
@@ -14,7 +20,8 @@ pip3 install fastapi uvicorn
 2. systemd
 
 ### 1. Crontab (simpler)
-Add crontab and update service/run.sh.  This will make sure the service is running.
+
+Add crontab and update service/run.sh. This will make sure the service is running.
 
 ```
 */5 * * * * /home/.../sodarr-chrome-plugin/service/run.sh
@@ -23,10 +30,13 @@ Add crontab and update service/run.sh.  This will make sure the service is runni
 ### 2. Systemd (more reliable)
 
 Create service file
+
 ```
 vim ~/.config/systemd/user/sodarr.service
 ```
+
 Content sodarr.service
+
 ```
 [Unit]
 Description=Sodarr client service
@@ -42,6 +52,7 @@ WantedBy=default.target
 ```
 
 Enable the service
+
 ```
 systemctl --user daemon-reload
 systemctl --user enable sodarr
@@ -54,4 +65,3 @@ systemctl --user status sodarr
 ![alt text](https://raw.githubusercontent.com/dmzoneill/sodarr-chrome-plugin/main/img/sonarr.png)
 
 ![alt text](https://raw.githubusercontent.com/dmzoneill/sodarr-chrome-plugin/main/img/radarr.png)
-
