@@ -1,6 +1,8 @@
 # Sodarr
 # https://github.com/dmzoneill/sodarr-chrome-plugin/
+"""Local helper service that opens media files with the desktop default player."""
 
+import contextlib
 import json
 import os
 import pwd
@@ -12,9 +14,9 @@ from urllib.parse import unquote
 from fastapi import FastAPI, Form
 
 try:
-    import systemd.daemon
-except:
-    pass
+    from systemd import daemon as SYSTEMD_DAEMON
+except ImportError:
+    SYSTEMD_DAEMON = None
 
 env = {}
 try:
@@ -22,9 +24,7 @@ try:
         {}
         if sys.platform == "win32"
         else {
-            "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/"
-            + str(os.getuid())
-            + "/bus",
+            "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/" + str(os.getuid()) + "/bus",
             "DESKTOP_SESSION": "gnome",
             "DISPLAY": ":1",
             "GDM_LANG": "en_IE.UTF-8",
@@ -47,23 +47,25 @@ try:
             "XMODIFIERS": "@im=ibus",
         }
     )
-except:
-    pass
+except (AttributeError, KeyError, OSError):
+    env = {}
 
 
 def check_valid_video(infile):
+    """Return [ok, lowered_path, extension_or_error] for a candidate media path."""
     try:
         if os.path.isdir(infile):
             return [True, None, None]
-        elif os.path.isfile(infile):
+        if os.path.isfile(infile):
             lower = infile.lower()
             extensions = [".mp3", ".flac", ".avi", ".mkv", ".avi", ".mp4", ".mpg"]
             for ext in extensions:
                 if lower.endswith(ext):
                     return [True, lower, ext]
             return [False, lower, None]
-    except Exception as e:
+    except (OSError, TypeError, ValueError) as e:
         return [False, False, str(e)]
+    return None
 
 
 app = FastAPI()
@@ -71,20 +73,22 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_event():
+    """Tell systemd the service is ready (when running under systemd)."""
     print("Startup complete")
-    try:
-        systemd.daemon.notify("READY=1")
-    except:
-        pass
+    if SYSTEMD_DAEMON is not None:
+        with contextlib.suppress(Exception):
+            SYSTEMD_DAEMON.notify("READY=1")
 
 
 @app.get("/")
 def do_nothing():
+    """Health check endpoint."""
     return {"Hello": "World"}
 
 
 @app.post("/open")
-async def play_video(video: str = Form(...)):
+def play_video(video: str = Form(...)):
+    """Open the posted media path with xdg-open (no shell)."""
     target = unquote(video)
     path_check = check_valid_video(target)
     # Require an absolute path so a value like "-x" can't be read as an option.

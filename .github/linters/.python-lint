@@ -1,0 +1,9 @@
+[MASTER]
+jobs=0
+
+[MESSAGES CONTROL]
+disable=import-error
+
+[FORMAT]
+# Match ruff/flake8 (super-linter defaults) so formatters and pylint agree.
+max-line-length=120
