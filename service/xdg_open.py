@@ -85,15 +85,17 @@ def do_nothing():
 
 @app.post("/open")
 async def play_video(video: str = Form(...)):
-    path_check = check_valid_video(unquote(video))
-    if path_check[0]:
-        cmd = ""
+    target = unquote(video)
+    path_check = check_valid_video(target)
+    # Require an absolute path so a value like "-x" can't be read as an option.
+    if path_check[0] and os.path.isabs(target):
         if sys.platform == "win32":
             print("Windows supported untested and unmaintained")
-            cmd = 'start "" "' + video + '"'
+            os.startfile(target)  # nosec - no shell involved
         else:
-            cmd = '/usr/bin/xdg-open "' + video + '"'
-
-        print(cmd)
-        pprint(subprocess.call(cmd, shell=True, env=env, universal_newlines=True))
+            # Pass the path as a single argv element (no shell) so quotes or
+            # shell metacharacters in the filename cannot inject commands.
+            cmd = ["/usr/bin/xdg-open", target]
+            print(cmd)
+            pprint(subprocess.call(cmd, env=env, universal_newlines=True))
     return json.dumps(path_check)
