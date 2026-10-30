@@ -87,7 +87,8 @@ def do_nothing():
 async def play_video(video: str = Form(...)):
     target = unquote(video)
     path_check = check_valid_video(target)
-    if path_check[0]:
+    # Require an absolute path so a value like "-x" can't be read as an option.
+    if path_check[0] and os.path.isabs(target):
         if sys.platform == "win32":
             print("Windows supported untested and unmaintained")
             os.startfile(target)  # nosec - no shell involved
