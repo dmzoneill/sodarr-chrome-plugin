@@ -8,12 +8,12 @@ class Sodarr {
   static serviceEndpoint = 'http://' + Sodarr.host + ':35000'
   static updating_dom_timer = null
   static updating_dom_series_link_count = 0
-  static vlc_logo = chrome.runtime.getURL('vlc.png') // eslint-disable-line
-  static folder_logo = chrome.runtime.getURL('folder.png') // eslint-disable-line
-  static loading_logo = chrome.runtime.getURL('loading.gif') // eslint-disable-line
-  static error_logo = chrome.runtime.getURL('error.png') // eslint-disable-line
+  static vlc_logo = chrome.runtime.getURL('vlc.png')
+  static folder_logo = chrome.runtime.getURL('folder.png')
+  static loading_logo = chrome.runtime.getURL('loading.gif')
+  static error_logo = chrome.runtime.getURL('error.png')
   static file_missing_indicators = ['Episode has not aired', 'Episode missing from disk']
-  static linux = navigator.platform.toLowerCase().indexOf('linux') > -1 // eslint-disable-line
+  static linux = navigator.platform.toLowerCase().indexOf('linux') > -1
   static class_prefix = 'sodarr-'
   static id_prefix = 'sodarr-'
   static modified = false
@@ -52,7 +52,7 @@ class Sodarr {
         lastError = error
       }
 
-      await new Promise(r => setTimeout(r, 1000)) // eslint-disable-line
+      await new Promise(r => setTimeout(r, 1000))
     }
 
     return [false, lastError]
@@ -121,7 +121,7 @@ class Sodarr {
       Sodarr.instance.updating_dom_timer = setTimeout(Sodarr.instance.update_page, 150)
     }
 
-    const mutationObserver = new MutationObserver(mutationCallback) // eslint-disable-line
+    const mutationObserver = new MutationObserver(mutationCallback)
 
     const config = {
       attributes: true,

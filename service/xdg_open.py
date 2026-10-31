@@ -95,7 +95,7 @@ def play_video(video: str = Form(...)):
     if path_check[0] and os.path.isabs(target):
         if sys.platform == "win32":
             print("Windows supported untested and unmaintained")
-            os.startfile(target)  # nosec - no shell involved
+            os.startfile(target)
         else:
             # Pass the path as a single argv element (no shell) so quotes or
             # shell metacharacters in the filename cannot inject commands.
