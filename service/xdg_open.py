@@ -94,12 +94,11 @@ def play_video(video: str = Form(...)):
     # Require an absolute path so a value like "-x" can't be read as an option.
     if path_check[0] and os.path.isabs(target):
         if sys.platform == "win32":
-            print("Windows supported untested and unmaintained")
-            os.startfile(target)  # nosec - no shell involved
-        else:
-            # Pass the path as a single argv element (no shell) so quotes or
-            # shell metacharacters in the filename cannot inject commands.
-            cmd = ["/usr/bin/xdg-open", target]
-            print(cmd)
-            pprint(subprocess.call(cmd, env=env, universal_newlines=True))
+            # Windows was never supported (untested, unmaintained); refuse instead of opening.
+            return json.dumps([False, "Windows is not supported"])
+        # Pass the path as a single argv element (no shell) so quotes or
+        # shell metacharacters in the filename cannot inject commands.
+        cmd = ["/usr/bin/xdg-open", target]
+        print(cmd)
+        pprint(subprocess.call(cmd, env=env, universal_newlines=True))
     return json.dumps(path_check)
